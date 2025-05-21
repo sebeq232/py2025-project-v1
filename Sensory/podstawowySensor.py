@@ -1,5 +1,5 @@
-import time
-import random
+import numpy as np
+from datetime import datetime
 
 class Sensor:
     def __init__(self, sensor_id, name, unit, min_value, max_value, frequency=1):
@@ -12,13 +12,31 @@ class Sensor:
         self.active = True
         self.last_value = None
         self.history = []
+        self._callbacks = []  # lista zarejestrowanych obserwatorów (np. logger)
+
+    def register_callback(self, callback):
+        """
+        Rejestruje funkcję callback, która zostanie wywołana po każdym odczycie.
+        """
+        self._callbacks.append(callback)
+
+    def notify_observers(self, timestamp, value):
+        """
+        Informuje zarejestrowanych obserwatorów o nowym odczycie.
+        """
+        for callback in self._callbacks:
+            callback(sensor_id=self.sensor_id, timestamp=timestamp, value=value, unit=self.unit)
 
     def read_value(self):
         if not self.active:
             raise Exception(f"Czujnik {self.name} jest wyłączony.")
-        value = random.uniform(self.min_value, self.max_value)
+        value = np.random.uniform(self.min_value, self.max_value)
         self.last_value = value
         self.history.append(value)
+
+        # Powiadom loggera (i innych obserwatorów)
+        self.notify_observers(timestamp=datetime.now(), value=value)
+
         return value
 
     def calibrate(self, calibration_factor):
