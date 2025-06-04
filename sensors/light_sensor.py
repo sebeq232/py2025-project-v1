@@ -1,20 +1,19 @@
 from .base_sensor import Sensor
 import numpy as np
+from datetime import datetime
 
 class LightSensor(Sensor):
     def __init__(self, sensor_id, unit="lx", frequency=1):
-        super().__init__(sensor_id, name="Light Sensor", unit=unit, min_value=0, max_value=10000, frequency=frequency)
+        super().__init__(sensor_id, "Light Sensor", unit, 0, 10000, frequency)
         self.anomaly_active = False
         self.anomaly_range = None
         self.anomaly_offset = 0
+        self.last_day = datetime.now().date()
         self._generate_daily_anomaly()
 
     def _generate_daily_anomaly(self):
-        """
-        Generuje pojedynczą anomalię trwającą 3 godziny między 6:00 a 21:00.
-        """
-        if np.random.rand() < 0.5:  # 50% szans na anomalię np zachmurzenie lub mało zachmurzone niebo
-            start = np.random.randint(6, 20)  # maksymalnie do 19, żeby mieściło się 3h
+        if np.random.rand() < 0.9:
+            start = np.random.randint(6, 20)
             self.anomaly_range = (start, start + 3)
             self.anomaly_offset = np.random.choice([-3500, 3500])
             self.anomaly_active = True
@@ -23,34 +22,39 @@ class LightSensor(Sensor):
             self.anomaly_range = None
             self.anomaly_offset = 0
 
-    def update_for_next_day(self):
-        self._generate_daily_anomaly()
+    def _update_if_new_day(self):
+        today = datetime.now().date()
+        if today != self.last_day:
+            self.last_day = today
+            self._generate_daily_anomaly()
 
-    def read_value(self, second_in_day=None):
+    def read_value(self):
         if not self.active:
             raise Exception(f"Czujnik {self.name} jest wyłączony.")
 
-        # Domyślne światło (0 lx nocą)
-        if 6 <= second_in_day < 22:
-            # Normalizacja do zakresu [0, 1] w ciągu dnia
-            sunrise = 6
-            duration = 16
-            normalized_time = (second_in_day - sunrise) / duration
+        self._update_if_new_day()
 
+        now = datetime.now()
+        hour = now.hour + now.minute / 60 + now.second / 3600
+
+        if 6 <= hour < 22:
+            normalized_time = (hour - 6) / 16
             base_light = 10000 * np.sin(np.pi * normalized_time)
         else:
             base_light = 0
 
-        # Anomalia
         if self.anomaly_active:
             start, end = self.anomaly_range
-            if start <= second_in_day < end:
+            if start <= now.hour < end:
                 base_light += self.anomaly_offset
 
-        # Szum
-        noise = np.random.normal(loc=0.0, scale=0.05 * base_light)
+        noise = np.random.normal(0, 0.05 * base_light)
         value = base_light + noise
-
-        # Zapis i zwrot wartości
         self.last_value = round(max(value, 0), 2)
         return self.last_value
+#Działanie:
+#Od 0:00 do 6:00 swiatlo jest zerowe, jak równiez od 22:00 do 23:59:59
+# zastosowana zostala tu sinusoida o szczycie o godzinie 15:00(najwiecej swiatla)
+#Do tego szum aby dodac naturalnosci w odczytach.Mozliwosc wystapienia anomali(naglego zachmurzenia lub natezenia swiatla)
+#Wykrywa nastepny dzien i znowu zaczyna od 0lx.
+#odczytuje sinusoide na podstawie zegara systemowego

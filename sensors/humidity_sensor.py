@@ -4,15 +4,14 @@ import numpy as np
 class HumiditySensor(Sensor):
     def __init__(self, sensor_id, temperature_sensor, unit="%", frequency=1):
         super().__init__(sensor_id, "Humidity Sensor", unit, 0, 100, frequency)
-        self.temperature_sensor = temperature_sensor  # Referencja do czujnika temperatury
+        self.temperature_sensor = temperature_sensor
 
-    def read_value(self, second_in_day=None):
+    def read_value(self):
         if not self.active:
             raise Exception(f"Czujnik {self.name} jest wyłączony.")
 
         temperature = self.temperature_sensor.get_last_value()
 
-        # Określ bazowy zakres wilgotności na podstawie temperatury
         if temperature < -10:
             base_range = (90, 99)
         elif -10 <= temperature < 0:
@@ -23,15 +22,15 @@ class HumiditySensor(Sensor):
             base_range = (60, 70)
         elif 20 <= temperature < 30:
             base_range = (50, 60)
-        else:  # temperature >= 30
+        else:
             base_range = (20, 50)
 
-        # Losuj wartość z bazowego zakresu + dodaj lekki szum
         base_value = np.random.uniform(*base_range)
-        noise = np.random.normal(0, 1.5)  # lekki szum, średnio 0, SD=1.5
+        noise = np.random.normal(0, 1.5)
         value = base_value + noise
 
-        # Ogranicz wynik do zakresu [0, 100] i zaokrąglij
-        # value = np.clip(value, 0, 100)
-        self.last_value = round(value, 2)
+        self.last_value = round(np.clip(value, 0, 100), 2)
         return self.last_value
+
+#czynnik wilgotnosci zalezny od wylosowanej temperatury,odczyty przydzielane na podstawie
+#przedziałow temperatury, do tego szum aby dodac wiekszą naturalnosc danych
