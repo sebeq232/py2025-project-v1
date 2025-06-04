@@ -67,7 +67,7 @@ class TemperatureSensor(Sensor):
             start, end = self.anomaly_range
             if start <= now.hour < end:
                 value += self.anomaly_offset
-
+        self._notify_callbacks()
         self.last_value = round(value, 2)
         return self.last_value
 

@@ -1,6 +1,6 @@
 import numpy as np
 import time
-
+from datetime import datetime
 class Sensor:
     def __init__(self, sensor_id, name, unit, min_value, max_value, frequency=1):
         self.sensor_id = sensor_id
@@ -33,3 +33,17 @@ class Sensor:
 
     def __str__(self):
         return f"Sensor(id={self.sensor_id}, name={self.name}, unit={self.unit})"
+    def register_callback(self, callback):
+        if not hasattr(self, "_callbacks"):
+            self._callbacks = []
+        self._callbacks.append(callback)
+
+    def _notify_callbacks(self):
+        if hasattr(self, "_callbacks"):
+            for callback in self._callbacks:
+                callback(
+                    self.sensor_id,
+                    datetime.now(),
+                    self.last_value,
+                    self.unit
+                )

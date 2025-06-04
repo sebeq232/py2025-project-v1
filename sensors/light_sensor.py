@@ -50,6 +50,7 @@ class LightSensor(Sensor):
 
         noise = np.random.normal(0, 0.05 * base_light)
         value = base_light + noise
+        self._notify_callbacks()
         self.last_value = round(max(value, 0), 2)
         return self.last_value
 #Działanie:

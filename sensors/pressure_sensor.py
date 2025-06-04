@@ -17,7 +17,7 @@ class PressureSensor(Sensor):
         fluctuation = 2 * np.sin(2 * np.pi * hour / 24)
         noise = np.random.normal(0, 0.5)
         value = self.base_pressure + fluctuation + noise
-
+        self._notify_callbacks()
         self.last_value = round(value, 2)
         return self.last_value
 #Generuje typowe dla polski wartosci cisnienia za pomoca fluktuacji losujac najpierw liczbe do fluktuacji(base pressure)
