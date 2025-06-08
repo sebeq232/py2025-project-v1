@@ -4,9 +4,8 @@ import csv
 from datetime import datetime, timedelta
 from typing import Optional, Iterator, Dict
 
-
 class Logger:
-    def __init__(self, config_path: str):
+    def __init__(self, config_path: str, client: Optional[object] = None):
         with open(config_path, "r", encoding="utf-8") as f:
             config = json.load(f)
 
@@ -16,7 +15,7 @@ class Logger:
         self.buffer_size = config.get("buffer_size", 100)
         self.rotate_every_hours = config.get("rotate_every_hours", 24)
         self.max_size_mb = config.get("max_size_mb", 10)
-        self.rotate_after_lines = config.get("rotate_after_lines", 1000)
+        self.rotate_after_lines = config.get("rotate_after_lines", 10000)
         self.retention_days = config.get("retention_days", 30)
 
         # Bufor danych
@@ -32,6 +31,9 @@ class Logger:
         os.makedirs(self.log_dir, exist_ok=True)
         os.makedirs(self.archive_dir, exist_ok=True)
 
+        # Klient sieciowy (opcjonalnie)
+        self.client = client
+
     def start(self) -> None:
         self._rotate(force=True)
 
@@ -45,6 +47,19 @@ class Logger:
     def log_reading(self, sensor_id: str, timestamp: datetime, value: float, unit: str) -> None:
         row = [timestamp.isoformat(), sensor_id, value, unit]
         self.buffer.append(row)
+
+        # Wysyłanie do klienta sieciowego (jeśli dostępny)
+        if self.client:
+            try:
+                payload = {
+                    "sensor_id": sensor_id,
+                    "timestamp": timestamp.isoformat(),
+                    "value": value,
+                    "unit": unit
+                }
+                self.client.send(payload)
+            except Exception as e:
+                print(f"[Logger] Błąd wysyłania do klienta sieciowego: {e}")
 
         if len(self.buffer) >= self.buffer_size:
             self._flush()
@@ -77,7 +92,6 @@ class Logger:
                 self._flush()
                 self.current_file.close()
 
-                # Przeniesienie starego pliku do archiwum z unikalną nazwą
                 old_path = os.path.join(self.log_dir, self.current_filename)
                 archived_path = self._get_next_available_filename(self.archive_dir, self.current_filename)
                 if os.path.exists(old_path):
@@ -130,13 +144,11 @@ class Logger:
             except Exception:
                 pass
 
-        # Przeszukaj katalog logów
         for filename in os.listdir(self.log_dir):
             filepath = os.path.join(self.log_dir, filename)
             if os.path.isfile(filepath) and filename.endswith(".csv"):
                 yield from process_file(filepath)
 
-        # Przeszukaj katalog archiwów
         for filename in os.listdir(self.archive_dir):
             filepath = os.path.join(self.archive_dir, filename)
             if os.path.isfile(filepath) and filename.endswith(".csv"):
@@ -152,6 +164,3 @@ class Logger:
             counter += 1
 
         return os.path.join(directory, new_name)
-    #powyzsze, to zabezpieczenie przed błedem tej samej nazwy pliku zapisanego do archiwum
-    #po drugim lub nastepnym spełnieniu warunku rotacji dla pliku(dla tego samego pliku) do archiwum za drugim razem dopisywany jest kolejny przedrostek
-    #_2, _3... itd. czyli jezeli nasz plik dwa razy w ciagu dnia zostanie zrotowany do archiwum to nie wystapi bład nazwy.

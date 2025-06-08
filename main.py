@@ -3,11 +3,16 @@ from sensors.humidity_sensor import HumiditySensor
 from sensors.pressure_sensor import PressureSensor
 from sensors.light_sensor import LightSensor
 from logger.logger import Logger
+from network.client import NetworkClient  # <-- dodaj to
 import time
 
 def main():
-    # Inicjalizacja loggera
-    logger = Logger("config.json")
+    # Inicjalizacja klienta sieciowego
+    client = NetworkClient("../configs/client_config.yaml")
+    client.connect()
+
+    # Inicjalizacja loggera z klientem
+    logger = Logger("config.json", client=client)  # <-- przekaz klienta
     logger.start()
 
     # Inicjalizacja czujników
@@ -23,7 +28,7 @@ def main():
     print(" Zbieranie danych przez x sekund...")
 
     try:
-        for i in range(3):  # 30 sekund
+        for i in range(3):  # 15 sekund
             temp_sensor.read_value()
             humidity_sensor.read_value()
             pressure_sensor.read_value()
@@ -38,6 +43,7 @@ def main():
     finally:
         # Zatrzymanie loggera i czujników
         logger.stop()
+        client.close()  # <-- zamknij połączenie
         for sensor in [temp_sensor, humidity_sensor, pressure_sensor, light_sensor]:
             sensor.stop()
 
@@ -45,4 +51,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

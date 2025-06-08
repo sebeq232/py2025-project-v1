@@ -48,14 +48,15 @@ class LightSensor(Sensor):
             if start <= now.hour < end:
                 base_light += self.anomaly_offset
 
-        noise = np.random.normal(0, 0.05 * base_light)
+        #  Zabezpieczenie przed ujemną wartością
+        base_light = max(base_light, 0)
+
+        #  Skala szumu – minimalna wartość, żeby uniknąć błędu
+        scale = max(0.05 * base_light, 1.0)
+        noise = np.random.normal(0, scale)
+
         value = base_light + noise
-        self._notify_callbacks()
         self.last_value = round(max(value, 0), 2)
+        self._notify_callbacks()
+        #self.last_value = round(max(value, 0), 2)
         return self.last_value
-#Działanie:
-#Od 0:00 do 6:00 swiatlo jest zerowe, jak równiez od 22:00 do 23:59:59
-# zastosowana zostala tu sinusoida o szczycie o godzinie 15:00(najwiecej swiatla)
-#Do tego szum aby dodac naturalnosci w odczytach.Mozliwosc wystapienia anomali(naglego zachmurzenia lub natezenia swiatla)
-#Wykrywa nastepny dzien i znowu zaczyna od 0lx.
-#odczytuje sinusoide na podstawie zegara systemowego

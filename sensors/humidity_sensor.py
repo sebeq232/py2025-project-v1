@@ -28,8 +28,9 @@ class HumiditySensor(Sensor):
         base_value = np.random.uniform(*base_range)
         noise = np.random.normal(0, 1.5)
         value = base_value + noise
-        self._notify_callbacks()
         self.last_value = round(np.clip(value, 0, 100), 2)
+        self._notify_callbacks()
+        #self.last_value = round(np.clip(value, 0, 100), 2)
         return self.last_value
 
 #czynnik wilgotnosci zalezny od wylosowanej temperatury,odczyty przydzielane na podstawie
