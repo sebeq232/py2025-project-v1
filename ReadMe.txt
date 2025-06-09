@@ -65,6 +65,30 @@ co godzinę – wyświetlana jest ostatnia średnia godzinowa,
 
 co 12 godzin – wyświetlana jest ostatnia średnia z 12 godzin.
 
+BONUS: JUPYTER NOTEBOOK
+po zainstalowaniu potrzebnych bibliotek z requirements mozemy odczytac nasze wyniki za pomocą Jupyter notebook.
+
+1.Otwieramy nowy terminal i wpisujemy:jupyter notebook
+2.przenosi nas na strone w przegladarce gdzie klikamy na plik notebook.ipynb, otwiera nam sie skrypt do uzycia.
+3.klikamy w strzałke "run".
+4.Pojawiaja nam sie wykresy statystyczne danych z czujnikow uwzgledniajace orginalne odczyty,wygladzone(przydatne dla
+wielu odczytow) oraz srednia z danego przedzialu czasowego
+* jezeli chcemy wyczyscic wyniki klikamy prawym na output i klikamy "Clear cell output"
+**Najlepiej jest robic wykresy dla danych w jednym przedziale czasowym, dla czytelnosci wykresow
+
+Dla przypominenia:
+1.uruchamiamy gui w terminalu za pomoca: python run_gui.py
+2.Klikamy przycisk "start" w gui i nasluchujemy.
+3.w osobnym terminalu uruchamiamy klienta: python main.py
+4.Zaczyna sie odczyt czujnikow
+Jezeli chcemy zakonczyc odczyt i bezpiecznie otworzyc/uzyc naszych danych w jupyter notebook:
+1.Zatrzymujemy server (stop)
+2.Wylaczamy main.py (ctr+c), czekamy chwile az pojawi sie wiadomosc "zobacz katalog logs"
+3.zamykamy okienko gui
+4. teraz mozemy otwierac/przekazywac plik csv z odczytami bez martwienia sie o bledy typu: "uzywany przez program",
+"inny wlasciciel" czy nieprawidlowe formatowanie i wysypanie sie zawartosci
+
+
 
 
  
