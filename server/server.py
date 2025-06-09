@@ -1,25 +1,29 @@
 import socket
 import threading
 import json
-import sys
-from network.config import load_config
 import os
 import logging
+from network.config import load_config
 
 class NetworkServer:
-    def __init__(self):
+    def __init__(self, port=None):
         config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "configs", "server_config.yaml"))
         config = load_config(config_path)
-        self.port = config.get("port", 9000)
+        self.port = port if port is not None else config.get("port", 9000)
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.settimeout(1.0)  # timeout 1 sekunda na accept
+        self.sock.settimeout(1.0)
         self.logger = logging.getLogger('NetworkServer')
         self.logger.setLevel(logging.INFO)
-        ch = logging.StreamHandler()
-        ch.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-        self.logger.addHandler(ch)
+        self.logger.addHandler(logging.StreamHandler())
         self.running = False
 
+        # lista funkcji wywoływanych przy odbiorze danych
+        self._data_callbacks = []
+        self._error_callback = None
+    def register_callback(self, callback):
+        self._data_callbacks.append(callback)
+    def register_error_callback(self,callback):
+        self._error_callback = callback
     def start(self):
         try:
             self.sock.bind(("0.0.0.0", self.port))
@@ -32,12 +36,11 @@ class NetworkServer:
                     client_socket, addr = self.sock.accept()
                     threading.Thread(target=self._handle_client, args=(client_socket, addr), daemon=True).start()
                 except socket.timeout:
-                    # Timeout do ponownego sprawdzenia flagi running
                     continue
-        except KeyboardInterrupt:
-            self.logger.info("Przerwano działanie serwera (Ctrl+C)")
         except Exception as e:
             self.logger.error(f"Błąd serwera: {e}")
+            if self._error_callback:
+                self._error_callback(e)
         finally:
             self.sock.close()
             self.logger.info("Serwer zatrzymany")
@@ -52,26 +55,16 @@ class NetworkServer:
                 while not data.endswith(b"\n"):
                     part = client_socket.recv(1024)
                     if not part:
-                        if not data:
-                            self.logger.warning(f"Połączenie z {addr} zamknięte bez danych.")
-                        else:
-                            self.logger.warning(f"Połączenie z {addr} zakończone w trakcie przesyłania danych.")
-                        return  # zakończ wątek klienta
-
+                        return
                     data += part
 
-                try:
-                    message = json.loads(data.decode())
-                except json.JSONDecodeError as e:
-                    self.logger.error(f"Nieprawidłowy JSON od {addr}: {e}")
-                    return
+                message = json.loads(data.decode())
+                print(f"[RECEIVED from {addr}]: {message}")
 
-                print(f"[RECEIVED from {addr}]:")
-                for k, v in message.items():
-                    print(f"  {k}: {v}")
+                # 🔔 powiadom GUI o nowych danych
+                for callback in self._data_callbacks:
+                    callback(message)
 
                 client_socket.sendall(b"ACK\n")
-
             except Exception as e:
                 self.logger.error(f"[ERROR] Błąd klienta {addr}: {e}")
-

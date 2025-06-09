@@ -5,12 +5,12 @@ from datetime import datetime
 
 class TemperatureSensor(Sensor):
     def __init__(self, sensor_id, temp_range=None, unit="°C", frequency=1):
-        if temp_range is None:
-            predefined_ranges = [(-20, -5), (-5, 15), (15, 40)]
-            temp_range = list(predefined_ranges[np.random.randint(0, len(predefined_ranges))])
-        else:
-            temp_range = list(temp_range)
-
+        if temp_range is None:                                                                           #
+            predefined_ranges = [(-20, -5), (-5, 15), (15, 40)]                                          #
+            temp_range = list(predefined_ranges[np.random.randint(0, len(predefined_ranges))])      #  ZAKOMENTUJ TE LINIE DLA STALEGO PRZEDZIALU
+        else:                                                                                            #
+            temp_range = list(temp_range)                                                                #
+        # temp_range = [-5, 15] #<- ODKOMENTUJ TE LINIE DLA STALEGO PRZEDZIALU
         super().__init__(sensor_id, "Temperature Sensor", unit, temp_range[0], temp_range[1], frequency)
         self.temp_range = temp_range
 

@@ -5,7 +5,7 @@ import time
 print("=== Test 10h: TemperatureSensor (czas systemowy) ===")
 
 sensor = TemperatureSensor("T-001")
-
+sensor.start()
 with open("log_temp_10h.txt", "w") as f:
     for i in range(36000):  # 10 godzin * 3600 sekund
         now = datetime.now().strftime("%H:%M:%S")

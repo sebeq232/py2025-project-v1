@@ -14,7 +14,7 @@ from network.client import NetworkClient
 
 
 
-# 🔧 Absolutne ścieżki
+# Absolutne ścieżki
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 CLIENT_CONFIG_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../configs/client_config.yaml"))
 LOGGER_CONFIG_PATH = os.path.join(BASE_DIR, "config.json")

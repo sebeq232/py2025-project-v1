@@ -5,7 +5,7 @@ import time
 print("=== Test 10h: LightSensor (czas systemowy) ===")
 
 sensor = LightSensor("L-001")
-
+sensor.start()
 with open("log_light_10h.txt", "w") as f:
     for i in range(20000):  # 10 godzin * 3600 sekund
         now = datetime.now().strftime("%H:%M:%S")

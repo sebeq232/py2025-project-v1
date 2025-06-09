@@ -5,7 +5,7 @@ import time
 print("=== Test 10h: PressureSensor (czas systemowy) ===")
 
 sensor = PressureSensor("P-001")
-
+sensor.start()
 with open("log_pressure_10h.txt", "w") as f:
     for i in range(10):  # 10 godzin
         now = datetime.now().strftime("%H:%M:%S")

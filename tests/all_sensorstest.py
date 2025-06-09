@@ -12,7 +12,10 @@ temp_sensor = TemperatureSensor("T-001")
 humidity_sensor = HumiditySensor("H-001", temperature_sensor=temp_sensor)
 light_sensor = LightSensor("L-001")
 pressure_sensor = PressureSensor("P-001")
-
+# temp_sensor.start()     Odkomentuj aby zaczac robic testy
+# humidity_sensor.start()
+# light_sensor.start()
+# pressure_sensor.start()
 with open("log_all_sensors_10h.txt", "w") as f:
     for i in range(36000):  # 10 godzin * 3600 sekund
         now = datetime.now().strftime("%H:%M:%S")

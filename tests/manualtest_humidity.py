@@ -7,7 +7,7 @@ print("=== Test 10h: HumiditySensor (czas systemowy) ===")
 
 temp_sensor = TemperatureSensor("T-REF") #referencja,aby test dzialal, w zalozeniu czujnik wilgotnosci generuje dane na podstawie temperarury
 humidity_sensor = HumiditySensor("H-001", temperature_sensor=temp_sensor)
-
+humidity_sensor.start()
 with open("log_humidity_10h.txt", "w") as f:
     for i in range(10):  # 10 godzin
         now = datetime.now().strftime("%H:%M:%S")
